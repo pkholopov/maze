@@ -29,9 +29,8 @@ export default class Movement {
     this.camera = camera
     this.controls = controls
     this.octree = octree
-    // this.addEventListeners()
-    console.log('Create Movement');
-    
+    this.boundOnKeyDown = this.onKeyDown.bind(this)
+    this.boundOnKeyUp = this.onKeyUp.bind(this)    
   }
 
   onKeyDown(e) {
@@ -46,14 +45,14 @@ export default class Movement {
     }
   }
 
-  addEventListeners() {
-    this.controls.domElement.addEventListener('keydown', this.onKeyDown.bind(this))
-    this.controls.domElement.addEventListener('keyup', this.onKeyUp.bind(this))
+  connect() {
+    this.controls.domElement.addEventListener('keydown', this.boundOnKeyDown)
+    this.controls.domElement.addEventListener('keyup', this.boundOnKeyUp)
   }
 
-  removeEventListeners() {
-    this.controls.domElement.removeEventListener('keydown', this.onKeyDown.bind(this))
-    this.controls.domElement.removeEventListener('keyup', this.onKeyUp.bind(this))
+  disconnect() {
+    this.controls.domElement.removeEventListener('keydown', this.boundOnKeyDown)
+    this.controls.domElement.removeEventListener('keyup', this.boundOnKeyUp)
   }
 
   collisionDetection() {

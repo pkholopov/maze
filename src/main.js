@@ -48,12 +48,7 @@ light.shadow.radius = 5
 light.shadow.blurSamples = 25
 scene.add(light)
 
-// const directionalLightHelper = new THREE.DirectionalLightHelper(light, 1)
-// scene.add(directionalLightHelper)
-
 const flashLight = new THREE.SpotLight(0xffffdd, 1)
-// spot.position.copy(camera.position)
-// spot.position.y = 1
 flashLight.position.set(0, 0, 0)
 flashLight.angle = Math.PI / 10
 flashLight.castShadow = true
@@ -69,7 +64,6 @@ flashLight.shadow.radius = 5
 flashLight.shadow.blurSamples = 25
 flashLight.penumbra = 0.9
 
-const flashLightTarget = new THREE.Object3D()
 
 camera.add(flashLight)
 flashLight.position.z = 0.1
@@ -78,19 +72,11 @@ flashLight.target = camera
 
 flashLight.visible = false
 
-function togleFlashLight() {
-  if (flashLight.visible) {
-    flashLight.visible = false
-  } else {
-    flashLight.visible = true
+function toggleFlashLight(event) {
+  if (event.code === 'KeyF') {
+    flashLight.visible = !flashLight.visible
   }
 }
-
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyF') {
-    togleFlashLight()
-  }
-})
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight
@@ -160,19 +146,19 @@ document.body.addEventListener('click', () => {
 const movement = new Movement(player, camera, controls, octree)
 
 controls.addEventListener('lock', () => {
-  movement.addEventListeners()
+  movement.connect()
+  document.addEventListener('keydown', toggleFlashLight)
 })
 controls.addEventListener('unlock', () => {
-  console.log('Unlock');
-  
-  movement.removeEventListeners()
+  movement.disconnect()
+  document.removeEventListener('keydown', toggleFlashLight)
 })
 
 function tick() {
   const delta = clock.getDelta()
   
   movement.move(delta)
-  controls.update()
+  controls.update(delta)
   renderer.render(scene, camera)
 }
 
