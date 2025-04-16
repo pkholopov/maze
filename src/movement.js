@@ -59,7 +59,6 @@ export default class Movement {
     const boundingSphere = new THREE.Sphere(this.movableObject.position, this.movableObject.radius)
     const result = this.octree.sphereIntersect(boundingSphere)
     if (result && result.depth > 0.00001) {
-      console.log(result);
       result.normal.y = 0 //FIXME: костыль, чтобы не уползать под пол
       
       this.camera.position.add( result.normal.multiplyScalar( result.depth ) );
@@ -76,21 +75,9 @@ export default class Movement {
     this.movableObject.direction.x = Number(moves.right) - Number(moves.left)
     this.movableObject.direction.z = Number(moves.forward) - Number(moves.backward)
     this.movableObject.direction.normalize()
-
-    if (moves.forward || moves.backward) {
-      this.movableObject.velocity.z = this.movableObject.direction.z
-    } else {
-      this.movableObject.velocity.z = 0
-    }
-
-    if (moves.left || moves.right) {
-      this.movableObject.velocity.x = this.movableObject.direction.x
-    } else {
-      this.movableObject.velocity.x = 0
-    }
-    this.movableObject.velocity.multiplyScalar(speed * delta)
-    this.controls.moveRight(this.movableObject.velocity.x)
-    this.controls.moveForward(this.movableObject.velocity.z)
+    this.movableObject.direction.multiplyScalar(speed * delta)
+    this.controls.moveRight(this.movableObject.direction.x)
+    this.controls.moveForward(this.movableObject.direction.z)
     this.movableObject.position.copy(this.camera.position)
     this.collisionDetection()
   }

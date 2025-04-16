@@ -132,7 +132,6 @@ worldGroup.add(floor)
 const player = {
   radius: 0.25,
   position: new THREE.Vector3().copy(camera.position),
-  velocity: new THREE.Vector3(0, 0, 0),
   direction: new THREE.Vector3(0, 0, 0),
   speed: 1,
 }
