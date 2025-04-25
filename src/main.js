@@ -1,4 +1,4 @@
-import './style.css'
+// import './style.css'
 
 import * as THREE from 'three'
 import { Octree, OctreeHelper, PointerLockControls } from 'three/examples/jsm/Addons.js'
@@ -8,9 +8,18 @@ import params from './params'
 import Movement from './movement'
 import animate from './animation'
 
-
 const clock = new THREE.Clock()
 
+const loaderElement = document.getElementById('loader')
+
+const loadingManager = new THREE.LoadingManager()
+loadingManager.onStart = () => {
+  console.log('loading started')
+}
+
+loadingManager.onLoad = () => {
+  loaderElement.style.display = 'none'
+}
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(params.background)
@@ -48,9 +57,8 @@ light.shadow.radius = 5
 light.shadow.blurSamples = 25
 scene.add(light)
 
-const flashLight = new THREE.SpotLight(0xffffdd, 1)
+const flashLight = new THREE.SpotLight(0xffffdd, 1, 0, Math.PI / 8, 0.9, 1)
 flashLight.position.set(0, 0, 0)
-flashLight.angle = Math.PI / 10
 flashLight.castShadow = true
 flashLight.shadow.camera.far = 50
 flashLight.shadow.camera.near = 0.1
@@ -62,7 +70,6 @@ flashLight.shadow.mapSize.width = 1024
 flashLight.shadow.mapSize.height = 1024
 flashLight.shadow.radius = 5
 flashLight.shadow.blurSamples = 25
-flashLight.penumbra = 0.9
 
 
 camera.add(flashLight)
@@ -127,7 +134,66 @@ floor.receiveShadow = true
 worldGroup.add(floor)
 
 
+const audioListener = new THREE.AudioListener()
+camera.add(audioListener)
 
+const audioLoader = new THREE.AudioLoader(loadingManager)
+
+const walkingSound = new THREE.Audio(audioListener)
+audioLoader.load('./walking.mp3', (buffer) => {
+  walkingSound.setBuffer(buffer)
+  walkingSound.setLoop(true)
+  walkingSound.setVolume(1)
+})
+
+const ambientSound = new THREE.Audio(audioListener)
+audioLoader.load('./ambient_piano.mp3', (buffer) => {
+  ambientSound.setBuffer(buffer)
+  ambientSound.setLoop(true)
+  ambientSound.setVolume(0.05)
+})
+const positionSound = new THREE.PositionalAudio(audioListener)
+audioLoader.load('./ghostly_humming.mp3', (buffer) => {
+  positionSound.setBuffer(buffer)
+  positionSound.setRefDistance(1)
+  positionSound.setLoop(true)
+  positionSound.setVolume(0.3)
+})
+
+const posSoundMesh = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 0.5, 0.5),
+  new THREE.MeshStandardMaterial({ color: 0xaaaaaa, opacity: 0, transparent: true })
+)
+posSoundMesh.position.set(8, 0, 15)
+posSoundMesh.add(positionSound)
+worldGroup.add(posSoundMesh)
+
+const randomSoundsPaths = ['i_see_you_voice.mp3', 'monster.mp3', 'horror_sound.mp3']
+
+const randomSounds = []
+
+randomSoundsPaths.forEach((sound) => {
+  const randomSound = new THREE.Audio(audioListener)
+  audioLoader.load(`./${sound}`, (buffer) => {
+    randomSound.setBuffer(buffer)
+    randomSound.setLoop(false)
+    randomSound.setVolume(0.05)
+    randomSounds.push(randomSound)
+  })
+})
+
+const scarySound = new THREE.Audio(audioListener)
+audioLoader.load('./i_see_you_voice.mp3', (buffer) => {
+  scarySound.setBuffer(buffer)
+  scarySound.setLoop(false)
+  scarySound.setVolume(0.05)
+})
+
+const getRandomInt = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+let scarySoundRandomFactor = getRandomInt(5, 15)
 
 const player = {
   radius: 0.25,
@@ -144,13 +210,27 @@ document.body.addEventListener('click', () => {
 
 const movement = new Movement(player, camera, controls, octree)
 
+movement.addEventListener('move', () => {
+  if (!walkingSound.isPlaying) {
+    walkingSound.play()
+  }
+})
+
+movement.addEventListener('stop', () => {
+  walkingSound.pause()
+})
+
 controls.addEventListener('lock', () => {
   movement.connect()
   document.addEventListener('keydown', toggleFlashLight)
+  ambientSound.play()
+  positionSound.play()
 })
 controls.addEventListener('unlock', () => {
   movement.disconnect()
   document.removeEventListener('keydown', toggleFlashLight)
+  ambientSound.pause()
+  positionSound.pause()
 })
 
 function tick() {
@@ -159,6 +239,12 @@ function tick() {
   movement.move(delta)
   controls.update(delta)
   renderer.render(scene, camera)
+  scarySoundRandomFactor -= delta
+  if (scarySoundRandomFactor < 0 && !scarySound.isPlaying && controls.isLocked) {
+    randomSounds[getRandomInt(0, randomSounds.length - 1)].play()
+    scarySoundRandomFactor = getRandomInt(15, 40)
+  }
+  
 }
 
 renderer.setAnimationLoop(tick)

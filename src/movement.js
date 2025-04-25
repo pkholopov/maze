@@ -16,7 +16,7 @@ const moves = {
   'run': false
 }
 
-export default class Movement {
+export default class Movement extends THREE.EventDispatcher {
   /**
    * Constructor for Movement class.
    * @param {object} movableObject - Player object, that can be moved.
@@ -25,6 +25,7 @@ export default class Movement {
    * @param {Octree} octree - Octree object.
    */
   constructor(movableObject, camera, controls, octree) {
+    super()
     this.movableObject = movableObject
     this.camera = camera
     this.controls = controls
@@ -80,5 +81,15 @@ export default class Movement {
     this.controls.moveForward(this.movableObject.direction.z)
     this.movableObject.position.copy(this.camera.position)
     this.collisionDetection()
+    if (moves.forward || moves.backward || moves.left || moves.right) {
+      this.dispatchEvent({
+        type: 'move',
+        direction: this.movableObject.direction
+      })
+    } else {
+      this.dispatchEvent({
+        type: 'stop'
+      })
+    }
   }
 }
