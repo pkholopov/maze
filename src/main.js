@@ -11,10 +11,15 @@ import animate from './animation'
 const clock = new THREE.Clock()
 
 const loaderElement = document.getElementById('loader')
+const progressElement = document.getElementById('progress')
 
 const loadingManager = new THREE.LoadingManager()
 loadingManager.onStart = () => {
   console.log('loading started')
+}
+
+loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+  progressElement.value = itemsLoaded / itemsTotal * 100
 }
 
 loadingManager.onLoad = () => {
