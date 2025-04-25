@@ -182,18 +182,12 @@ randomSoundsPaths.forEach((sound) => {
   })
 })
 
-const scarySound = new THREE.Audio(audioListener)
-audioLoader.load('./i_see_you_voice.mp3', (buffer) => {
-  scarySound.setBuffer(buffer)
-  scarySound.setLoop(false)
-  scarySound.setVolume(0.05)
-})
 
 const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-let scarySoundRandomFactor = getRandomInt(5, 15)
+let randomSoundTime = getRandomInt(5, 15)
 
 const player = {
   radius: 0.25,
@@ -239,10 +233,10 @@ function tick() {
   movement.move(delta)
   controls.update(delta)
   renderer.render(scene, camera)
-  scarySoundRandomFactor -= delta
-  if (scarySoundRandomFactor < 0 && !scarySound.isPlaying && controls.isLocked) {
+  randomSoundTime -= delta
+  if (randomSoundTime < 0 && controls.isLocked) {
     randomSounds[getRandomInt(0, randomSounds.length - 1)].play()
-    scarySoundRandomFactor = getRandomInt(15, 40)
+    randomSoundTime = getRandomInt(15, 40)
   }
   
 }
