@@ -233,7 +233,7 @@ function tick() {
   movement.move(delta)
   controls.update(delta)
   renderer.render(scene, camera)
-  randomSoundTime -= delta
+  if (controls.isLocked) randomSoundTime -= delta
   if (randomSoundTime < 0 && controls.isLocked) {
     randomSounds[getRandomInt(0, randomSounds.length - 1)].play()
     randomSoundTime = getRandomInt(15, 40)
